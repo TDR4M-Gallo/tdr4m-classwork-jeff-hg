@@ -1,0 +1,46 @@
+#include <PRIZM.h>
+
+PRIZM prizm;
+const int LINE_SENSOR_PORT = 3;
+const int SONIC_SENSOR_PORT = 4;
+const int MOTOR_LEFT = 1;
+const int MOTOR_RIGHT = 2;
+int objectDetectionRange = 15;
+int maxDetectionRange = 25;
+
+
+void setup() {
+  prizm.PrizmBegin();
+  
+  // Go towards the line
+  prizm.setMotorPowers(100,100);
+  delay(500);
+}
+
+
+void loop() {
+  // Object Detection
+  while(prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= objectDetectionRange){
+    prizm.setMotorPower(MOTOR_LEFT,125);
+    prizm.setMotorPower(MOTOR_RIGHT,30);
+  }
+  while(objectDetectionRange <= prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= maxDetectionRange){
+    prizm.setMotorPower(MOTOR_LEFT,30);
+    prizm.setMotorPower(MOTOR_RIGHT,30);
+    prizm.setGreenLED(HIGH);
+  }
+  prizm.setGreenLED(LOW);
+  
+  // Line detection
+  if(prizm.readLineSensor(LINE_SENSOR_PORT) == 1){
+    prizm.setMotorPower(MOTOR_LEFT,30);
+    prizm.setMotorPower(MOTOR_RIGHT,125);
+    prizm.setRedLED(HIGH);
+  }
+  else {
+    prizm.setMotorPower(MOTOR_LEFT,125);
+    prizm.setMotorPower(MOTOR_RIGHT,30);
+    prizm.setRedLED(LOW);
+  }
+  
+}
