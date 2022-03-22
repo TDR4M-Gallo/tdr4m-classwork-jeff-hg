@@ -74,12 +74,13 @@ void loop() {
   }
   
   if(phase == 4) {
-    // Object detection to finish phase   
+    // Object detection to finish phase
+    // Turn left if there is an object detected
     while(prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= objectDetectionRange){
       prizm.setMotorPower(MOTOR_LEFT,125);
       prizm.setMotorPower(MOTOR_RIGHT,30);
     }
-    // 
+    // Move forward otherwise
     prizm.setMotorPower(MOTOR_LEFT,30);
     prizm.setMotorPower(MOTOR_RIGHT,30);
     prizm.setGreenLED(HIGH);
