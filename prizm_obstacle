@@ -5,42 +5,84 @@ const int LINE_SENSOR_PORT = 3;
 const int SONIC_SENSOR_PORT = 4;
 const int MOTOR_LEFT = 1;
 const int MOTOR_RIGHT = 2;
-int objectDetectionRange = 15;
+int objectDetectionRange = 5;
 int maxDetectionRange = 25;
-
+int phase = 1;
+/* phase tells the robot what portion of the obstacle course its on and what code it needs to run*/
 
 void setup() {
   prizm.PrizmBegin();
-  
-  // Go towards the line
-  prizm.setMotorPowers(100,100);
-  delay(500);
 }
 
 
 void loop() {
-  // Object Detection
-  while(prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= objectDetectionRange){
-    prizm.setMotorPower(MOTOR_LEFT,125);
-    prizm.setMotorPower(MOTOR_RIGHT,30);
+  if(phase == 1) {
+    // Go towards the line phase
+    prizm.setMotorPowers(100,100);
+    if(prizm.readLineSensor(LINE_SENSOR_PORT) == 1) {
+      // If the robot senses a line, change to phase 2
+      prizm.setMotorPowers(125,125);
+      phase = 2;
+    }
   }
-  while(objectDetectionRange <= prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= maxDetectionRange){
+
+  if(phase == 2) {
+    // Line movement to rotate phase
+    prizm.setGreenLED(HIGH);
+    
+    if(prizm.readLineSensor(LINE_SENSOR_PORT) == 1){
+      prizm.setMotorPower(MOTOR_LEFT,30);
+      prizm.setMotorPower(MOTOR_RIGHT,125);
+      prizm.setRedLED(HIGH);
+      if(objectDetectionRange <= prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= maxDetectionRange){
+      // First obstacle detected
+      // If the robot senses the line and detects an object, have the robot rotate left
+        prizm.setMotorPower(MOTOR_LEFT,30);
+        prizm.setMotorPower(MOTOR_RIGHT,-30);
+      }
+    }
+    else {
+      prizm.setMotorPower(MOTOR_LEFT,125);
+      prizm.setMotorPower(MOTOR_RIGHT,30);
+      prizm.setRedLED(LOW);
+      if((objectDetectionRange <= prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= maxDetectionRange) and (prizm.readLineSensor(LINE_SENSOR_PORT) == 0)){
+      // if object is detected and there is no line, switch to phase 3
+        phase = 3; 
+    }
+  }
+
+  if(phase == 3){
+    prizm.setMotorPower(MOTOR_LEFT,30);
+    prizm.setMotorPower(MOTOR_RIGHT,30);
+    delay(1000); //Change this delay value so that the robot goes to the line
+
+    // Follow the line
+    if(prizm.readLineSensor(LINE_SENSOR_PORT) == 1){
+      prizm.setMotorPower(MOTOR_LEFT,30);
+      prizm.setMotorPower(MOTOR_RIGHT,125);
+      prizm.setRedLED(HIGH);
+      }
+    }
+    else {
+      prizm.setMotorPower(MOTOR_LEFT,125);
+      prizm.setMotorPower(MOTOR_RIGHT,30);
+      prizm.setRedLED(LOW);
+    }
+    if(prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= objectDetectionRange){
+      phase = 4;
+    }
+  }
+  
+  if(phase == 4) {
+    // Object detection to finish phase   
+    while(prizm.readSonicSensorCM(SONIC_SENSOR_PORT) <= objectDetectionRange){
+      prizm.setMotorPower(MOTOR_LEFT,125);
+      prizm.setMotorPower(MOTOR_RIGHT,30);
+    }
+    // 
     prizm.setMotorPower(MOTOR_LEFT,30);
     prizm.setMotorPower(MOTOR_RIGHT,30);
     prizm.setGreenLED(HIGH);
-  }
-  prizm.setGreenLED(LOW);
-  
-  // Line detection
-  if(prizm.readLineSensor(LINE_SENSOR_PORT) == 1){
-    prizm.setMotorPower(MOTOR_LEFT,30);
-    prizm.setMotorPower(MOTOR_RIGHT,125);
-    prizm.setRedLED(HIGH);
-  }
-  else {
-    prizm.setMotorPower(MOTOR_LEFT,125);
-    prizm.setMotorPower(MOTOR_RIGHT,30);
-    prizm.setRedLED(LOW);
   }
   
 }
